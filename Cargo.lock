@@ -5,6 +5,9 @@ version = 3
 [[package]]
 name = "cmd-client"
 version = "0.1.0"
+dependencies = [
+ "udp-leds",
+]
 
 [[package]]
 name = "proc-macro2"
