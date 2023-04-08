@@ -37,7 +37,7 @@ pub enum ClientMessages {
     Hello,
     SetActive(u8),
     SendPixels(u8, [u8; MAX_LED_COUNT * 3]),
-    SetPixel(u8, u8, u8, u8)
+    SetPixel(u8, u8, u8, u8, u8)
 }
 
 impl ClientMessages {
@@ -59,9 +59,9 @@ impl ClientMessages {
     }
 
     /// Creates a new set pixel message
-    pub fn set_pixel(device: u8, r: u8, g: u8, b: u8) -> Self {
+    pub fn set_pixel(device: u8, pixel:u8, r: u8, g: u8, b: u8) -> Self {
         assert!(device < DEVICE_MASK, "Invalid device number: {}", device);
-        ClientMessages::SetPixel(device, r, g, b)
+        ClientMessages::SetPixel(device, pixel, r, g, b)
     }
 
     pub fn expect_response(&self) -> bool {
@@ -69,7 +69,7 @@ impl ClientMessages {
             ClientMessages::Hello => true,
             ClientMessages::SetActive(_) => false,
             ClientMessages::SendPixels(_, _) => false,
-            ClientMessages::SetPixel(_, _, _, _) => false
+            ClientMessages::SetPixel(_, _, _, _, _) => false
         }
     }
 
@@ -109,10 +109,10 @@ impl TryFrom<&[u8]> for ClientMessages {
                 Ok(ClientMessages::SendPixels(value[1] & crate::constants::DEVICE_MASK, pixels))
             },
             crate::constants::INSTRUCTION_SET_PIXEL => {
-                if value.len() != 5 {
+                if value.len() != 6 {
                     return Err(crate::error::Error::InvalidMessageLength);
                 }
-                Ok(ClientMessages::SetPixel(value[1] & crate::constants::DEVICE_MASK, value[2], value[3], value[4]))
+                Ok(ClientMessages::SetPixel(value[1] & crate::constants::DEVICE_MASK, value[2], value[3], value[4], value[5]))
             },
             _ => panic!("Unreachable")
             
@@ -142,13 +142,14 @@ impl Into<[u8; MAX_MESSAGE_LENGTH]> for ClientMessages  {
                 message[2..pixels.len() + 2].copy_from_slice(&pixels);
                 message
             },
-            ClientMessages::SetPixel(device, r, g, b) => {
+            ClientMessages::SetPixel(device, pixel, r, g, b) => {
                 let mut message = [0; MAX_MESSAGE_LENGTH];
                 message[0] = CLIENT_FLAG;
                 message[1] = crate::constants::INSTRUCTION_SET_PIXEL | device;
-                message[2] = r;
-                message[3] = g;
-                message[4] = b;
+                message[2] = pixel;
+                message[3] = r;
+                message[4] = g;
+                message[5] = b;
                 message
             }
         }
@@ -197,13 +198,14 @@ mod test{
 
     #[test]
     fn test_set_pixel() {
-        let message = ClientMessages::SetPixel(1, 2, 3, 4);
+        let message = ClientMessages::SetPixel(1, 2, 3, 4, 5);
         let bytes: [u8; MAX_MESSAGE_LENGTH] = message.into();
         assert_eq!(bytes[0], CLIENT_FLAG);
         assert_eq!(bytes[1], crate::constants::INSTRUCTION_SET_PIXEL | 1);
         assert_eq!(bytes[2], 2);
         assert_eq!(bytes[3], 3);
         assert_eq!(bytes[4], 4);
+        assert_eq!(bytes[5], 5);
     }
 
     #[test]
@@ -229,9 +231,9 @@ mod test{
 
     #[test]
     fn test_try_from_set_pixel() {
-        let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_SET_PIXEL | 1, 2, 3, 4];
+        let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_SET_PIXEL | 1, 0, 2, 3, 4];
         let message = ClientMessages::try_from(&bytes).unwrap();
-        assert_eq!(message, ClientMessages::SetPixel(1, 2, 3, 4));
+        assert_eq!(message, ClientMessages::SetPixel(1, 0, 2, 3, 4));
     }
 
     #[test]
