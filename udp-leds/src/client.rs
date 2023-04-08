@@ -78,7 +78,7 @@ impl ClientMessages {
             ClientMessages::Hello => Some(ServerMessages::Hello),
             ClientMessages::SetActive(_) => None,
             ClientMessages::SendPixels(_, _) => None,
-            ClientMessages::SetPixel(_, _, _, _) => None
+            ClientMessages::SetPixel(_, _, _, _, _) => None
         }
     }
 }
