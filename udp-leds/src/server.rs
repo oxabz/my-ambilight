@@ -1,6 +1,27 @@
+/**
+ * # Server Messages
+ * Defines the messages that the server can send to the client.
+ * 
+ * ## Message format
+ * The messages are sent as a byte array
+ * The first byte is the flag
+ * The second byte is the instruction
+ * The instruction is the 2 most significant bits of the second byte
+ * 
+ * ## Hello
+ * The server sends a hello message to the client to confirm that it is the server
+ * [SERVER_FLAG, 0b1100_0000]
+ */
 #[derive(Debug)]
 pub enum ServerMessages {
     Hello
+}
+
+impl ServerMessages {
+    /// Creates a new hello message
+    pub fn hello() -> Self {
+        ServerMessages::Hello
+    }
 }
 
 impl TryFrom<&[u8]> for ServerMessages {
