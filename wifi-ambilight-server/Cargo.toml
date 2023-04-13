@@ -1,0 +1,31 @@
+[package]
+name = "wifi-ambilight2"
+version = "0.1.0"
+authors = ["oxabz <legmatt0@gmail.com>"]
+edition = "2021"
+resolver = "2"
+
+[profile.release]
+opt-level = "s"
+strip = true
+lto = true
+debug = false
+codegen-units = 1
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
+
+[features]
+pio = ["esp-idf-sys/pio"]
+
+[dependencies]
+embedded-svc = "=0.24.0"
+esp-idf-hal = "=0.40.1"
+esp-idf-svc = { version = "0.45.0", features = ["experimental", "alloc"] }
+esp-idf-sys = { version = "=0.32.1", features = ["binstart"] }
+build_const = "0.2.1"
+log = "0.4.14"
+
+[build-dependencies]
+embuild = "0.31.1"
