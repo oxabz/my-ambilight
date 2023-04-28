@@ -38,11 +38,11 @@ fn main() {
                 cmessage = ClientMessages::Hello.into();
                 udp.send_to(&cmessage, broadcast).expect("Failed to send hello");
                 while let Ok((size, addr)) = udp.recv_from(&mut smessage) {
-                    if let Ok(ServerMessages::Hello)  = ServerMessages::try_from(&smessage[..size]){
-                        println!("Found server at {}", addr);
+                    if let Ok(ServerMessages::Hello) = ServerMessages::try_from(&smessage[..]) {
+                        println!("Found server at {addr}");
                         server = addr;
                         break;
-                    } 
+                    }
                 }
             },
             's' => {
@@ -105,6 +105,9 @@ fn main() {
 
                     dur = start.elapsed().unwrap();
                 }
+            },
+            'q' => {
+                break;
             },
             _ => {
                 println!("Invalid input");

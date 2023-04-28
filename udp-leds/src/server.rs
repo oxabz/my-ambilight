@@ -28,7 +28,7 @@ impl TryFrom<&[u8]> for ServerMessages {
     type Error = crate::error::Error;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        if value.len() > 2 {
+        if value.len() <= 2 {
             return Err(crate::error::Error::InvalidMessageLength);
         }
         if value[0] != crate::constants::SERVER_FLAG {

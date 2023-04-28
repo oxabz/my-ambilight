@@ -97,7 +97,7 @@ impl TryFrom<&[u8]> for ClientMessages {
         match value[1] & INSTRUCTION_MASK {
             crate::constants::INSTRUCTION_HELLO => Ok(ClientMessages::Hello),
             crate::constants::INSTRUCTION_SET_ACTIVE => {
-                if value.len() != 2 {
+                if value.len() < 2 {
                     return Err(crate::error::Error::InvalidMessageLength);
                 }
                 Ok(ClientMessages::SetActive(value[1] & crate::constants::DEVICE_MASK))
@@ -109,7 +109,7 @@ impl TryFrom<&[u8]> for ClientMessages {
                 Ok(ClientMessages::SendPixels(value[1] & crate::constants::DEVICE_MASK, pixels))
             },
             crate::constants::INSTRUCTION_SET_PIXEL => {
-                if value.len() != 6 {
+                if value.len() < 6 {
                     return Err(crate::error::Error::InvalidMessageLength);
                 }
                 Ok(ClientMessages::SetPixel(value[1] & crate::constants::DEVICE_MASK, value[2], value[3], value[4], value[5]))
