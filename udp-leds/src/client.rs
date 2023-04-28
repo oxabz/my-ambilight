@@ -32,7 +32,7 @@ use crate::{constants::{CLIENT_FLAG, INSTRUCTION_MASK, MAX_MESSAGE_LENGTH, MAX_L
  * The modifications are only applied if the current device is active
  * [CLIENT_FLAG, 0b1000_0000 | device, index, r, g, b]
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ClientMessages {
     Hello,
     SetActive(u8),
@@ -178,7 +178,9 @@ mod test{
 
     #[test]
     fn test_send_pixels() {
-        let message = ClientMessages::SendPixels(0,[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        let mut bytes = [0; MAX_LED_COUNT * 3];
+        bytes[0..13].copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        let message = ClientMessages::SendPixels(0, bytes);
         let bytes: [u8; MAX_MESSAGE_LENGTH] = message.into();
         assert_eq!(bytes[0], CLIENT_FLAG);
         assert_eq!(bytes[1], crate::constants::INSTRUCTION_SEND_PIXELS);
@@ -211,49 +213,53 @@ mod test{
     #[test]
     fn test_try_from_hello() {
         let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_HELLO];
-        let message = ClientMessages::try_from(&bytes).unwrap();
+        let message = ClientMessages::try_from(&bytes[..]).unwrap();
         assert_eq!(message, ClientMessages::Hello);
     }
 
     #[test]
     fn test_try_from_set_active() {
         let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_SET_ACTIVE | 1];
-        let message = ClientMessages::try_from(&bytes).unwrap();
+        let message = ClientMessages::try_from(&bytes[..]).unwrap();
         assert_eq!(message, ClientMessages::SetActive(1));
     }
 
     #[test]
     fn test_try_from_send_pixels() {
         let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_SEND_PIXELS, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-        let message = ClientMessages::try_from(&bytes).unwrap();
-        assert_eq!(message, ClientMessages::SendPixels(0,[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]));
+        let message = ClientMessages::try_from(&bytes[..]).unwrap();
+
+        let mut bytes = [0; MAX_LED_COUNT * 3];
+        bytes[0..13].copy_from_slice(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        assert_eq!(message, ClientMessages::SendPixels(0,bytes));
     }
 
     #[test]
     fn test_try_from_set_pixel() {
         let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_SET_PIXEL | 1, 0, 2, 3, 4];
-        let message = ClientMessages::try_from(&bytes).unwrap();
+        
+        let message = ClientMessages::try_from(&bytes[..]).unwrap();
         assert_eq!(message, ClientMessages::SetPixel(1, 0, 2, 3, 4));
     }
 
     #[test]
     fn test_try_from_invalid_flag() {
         let bytes = [0x00, crate::constants::INSTRUCTION_HELLO];
-        let message = ClientMessages::try_from(&bytes);
+        let message = ClientMessages::try_from(&bytes[..]);
         assert_eq!(message, Err(crate::error::Error::InvalidFlag));
     }
 
     #[test]
     fn test_try_from_invalid_message_length() {
         let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_HELLO, 1];
-        let message = ClientMessages::try_from(&bytes);
+        let message = ClientMessages::try_from(&bytes[..]);
         assert_eq!(message, Err(crate::error::Error::InvalidMessageLength));
     }
 
     #[test]
     fn test_try_from_invalid_message_length_2() {
         let bytes = [CLIENT_FLAG, crate::constants::INSTRUCTION_SET_ACTIVE | 1, 1];
-        let message = ClientMessages::try_from(&bytes);
+        let message = ClientMessages::try_from(&bytes[..]);
         assert_eq!(message, Err(crate::error::Error::InvalidMessageLength));
     }
 

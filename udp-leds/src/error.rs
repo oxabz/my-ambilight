@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 
-#[derive(Error, Debug)]
+#[derive(Error, PartialEq, Debug)]
 pub enum Error {
     #[error("Malformed message : invalid message length")]
     InvalidMessageLength,
